@@ -93,7 +93,7 @@ class NodeInfo
     for(int i = 0; i < nodeList.length; i++)
     {
         Node srcNode = nodeList[i];
-//System.out.println("Node Name="+srcNode.getName());
+        //System.out.println("Node Name="+srcNode.getName());
 
         int[] edges = srcNode.getDependencies();
         int[] weights = srcNode.getWeights();

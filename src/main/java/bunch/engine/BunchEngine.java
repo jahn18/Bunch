@@ -567,7 +567,16 @@ arrangeLibrariesClientsAndSuppliers(Graph g,
         Parser p = preferences_d.getParserFactory().getParser("dependency");
         p.setInput((String)bunchArgs.get(BunchProperties.MDG_INPUT_FILE_NAME));
         p.setDelims(getFileDelims());
-        initialGraph_d = (Graph)p.parse();
+        String setClusterNumber = (String) bunchArgs.get(BunchProperties.FIX_NUMBER_OF_CLUSTERS);
+        if(setClusterNumber.equalsIgnoreCase("True"))
+        {
+          String numClusters = (String) bunchArgs.get(BunchProperties.NUMBER_OF_CLUSTERS);
+          initialGraph_d = (Graph)p.parse(Integer.parseInt(numClusters));
+        }
+        else
+        {
+          initialGraph_d = (Graph)p.parse();
+        }
         reflexiveEdgeCount = ((DependencyFileParser)p).getReflexiveEdges();
       }
 
@@ -878,6 +887,7 @@ arrangeLibrariesClientsAndSuppliers(Graph g,
     //    notifyClass = (BunchAsyncNotify)bunchArgs.get(BunchProperties.RUN_ASYNC_NOTIFY_CLASS);
     //if(notifyClass == null)
     //{
+    //unused
       ExecuteClusteringEngine ce = new ExecuteClusteringEngine();//clusteringMethod_d,bunchArgs);
     //}
     //else

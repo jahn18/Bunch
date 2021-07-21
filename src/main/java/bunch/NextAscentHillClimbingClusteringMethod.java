@@ -172,6 +172,10 @@ getLocalMaxGraph(Cluster c)
         int currNode  = rndClustOrdering[i];
         int currClust = clusters[currNode];//c.getCluster(currNode);
         int tmpClust  = currClust;
+        if(c.getNumberNodesInCluster(currClust) <= 1)
+        {
+            continue;
+        }
 //System.out.println();
 //System.out.println("Current node = " + currNode + " current Cluster = " + currClust);
         int j=0;
@@ -253,42 +257,48 @@ getLocalMaxGraph(Cluster c)
     }catch(Exception ex)
     {System.out.println(ex.toString()); }
 
-//******************** THIS IS NEW EXPIREMENTAL CODE
-    if (!bunch.util.BunchUtilities.compareGreater(maxOF,originalMax)) {
-      Node [] nodes = c.getGraph().getNodes();
-      int newClusterID = c.allocateNewCluster();
+    boolean hasFixedNumberOfClusters = (c.graph.numberOfClusters_d > 0);
 
-        for (int i=0; i<clusters.length; ++i) {
-          int currNode  = rndClustOrdering[i];
-          int currClust = clusters[currNode];
+    if(!hasFixedNumberOfClusters)
+    {
+    //******************** THIS IS NEW EXPERIMENTAL CODE
+        if (!bunch.util.BunchUtilities.compareGreater(maxOF,originalMax)) {
+            Node [] nodes = c.getGraph().getNodes();
+            int newClusterID = c.allocateNewCluster();
 
-          c.relocate(currNode,newClusterID);
-          int []edges = nodes[currNode].getDependencies();
+            for (int i=0; i<clusters.length; ++i) {
+                int currNode  = rndClustOrdering[i];
+                int currClust = clusters[currNode];
 
-          int j=0;
-          for (; j<edges.length; ++j) {
-            int otherNode = edges[j];
-            if ((!locks[currNode]) && (!locks[otherNode])) {
-                int otherNodeCluster = clusters[otherNode];
-                c.relocate(otherNode,newClusterID);
+                c.relocate(currNode,newClusterID);
+                int []edges = nodes[currNode].getDependencies();
 
-                if (bunch.util.BunchUtilities.compareGreater(c.getObjFnValue(),maxOF)) {
-                    maxC.copyFromCluster(c);
-                    maxOF = c.getObjFnValue();
-                    c.copyFromCluster(maxC);
-                    c.incrDepth();
-                    c.setConverged(false);
+                int j=0;
+                for (; j<edges.length; ++j) {
+                    int otherNode = edges[j];
+                    if ((!locks[currNode]) && (!locks[otherNode])) {
+                        int otherNodeCluster = clusters[otherNode];
+                        c.relocate(otherNode,newClusterID);
+
+                        if (bunch.util.BunchUtilities.compareGreater(c.getObjFnValue(),maxOF)) {
+                            maxC.copyFromCluster(c);
+                            maxOF = c.getObjFnValue();
+                            c.copyFromCluster(maxC);
+                            c.incrDepth();
+                            c.setConverged(false);
 //System.out.println("EARLY3");
-                    return c;
+                            return c;
+                        }
+                        c.relocate(otherNode,otherNodeCluster);
+                    }
                 }
-                c.relocate(otherNode,otherNodeCluster);
+                c.relocate(currNode,currClust);
             }
-          }
-          c.relocate(currNode,currClust);
+            c.removeNewCluster(newClusterID);
         }
-      c.removeNewCluster(newClusterID);
+    //*********************** END OF EXPERIMENTAL CODE
+
     }
-//*********************** END OF EXPIREMENTAL CODE
 
 
 

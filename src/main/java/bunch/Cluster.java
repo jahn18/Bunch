@@ -121,6 +121,19 @@ import bunch.stats.*;
   public double getBaseObjFnValue()
   { return baseObjFnValue;  }
 
+    public int getNumberNodesInCluster(int cluster)
+    {
+        int numNodesInCluster = 0;
+        for(int i = 0; i < clusterVector.length; i++)
+        {
+            if(clusterVector[i] == cluster)
+            {
+                numNodesInCluster++;
+            }
+        }
+        return numNodesInCluster;
+    }
+
   public long getNumMQEvaluations()
   { return numMQEvaluations; }
 
@@ -715,7 +728,7 @@ import bunch.stats.*;
   public boolean relocate(int node, int cluster)
   {
     int currentCluster = clusterVector[node];
-    if(currentCluster != cluster)
+    if(currentCluster != cluster && getNumberNodesInCluster(cluster) > 1)
       return move(node,currentCluster,cluster);
 
     return true;

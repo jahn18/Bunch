@@ -92,8 +92,7 @@ public class BunchAPI {
     {
       String key = (String)e.nextElement();
       String value = bp.getProperty(key);
-      h.put(key,value);
-    }
+      h.put(key,value); }
 
     String HCPct = (String)h.get(BunchProperties.ALG_NAHC_HC_PCT);
     if(HCPct != null)

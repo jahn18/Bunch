@@ -90,6 +90,154 @@ public int getReflexiveEdges()
 public boolean hasReflexiveEdges()
 { return (reflexiveEdges > 0);   }
 
+  /**
+   * The method of the class where all work is done.
+   */
+  public
+  Object
+  parse(int numberOfClusters)
+  {
+    reflexiveEdges = 0;
+    Hashtable nodes = new Hashtable();
+    Graph retGraph = null;
+
+    try {
+      //read all the information from the file
+      while (true)
+      {
+        //Read the next line
+        String line = reader_d.readLine();
+        if (line == null) {
+          break;
+        }
+        if (line == "") {
+          continue;
+        }
+
+        //Parse the current line
+        StringTokenizer st = new StringTokenizer(line, delims_d);
+        if (!st.hasMoreTokens()) {
+          continue;
+        }
+
+        ParserNode currentNode = null;
+        ParserNode targetNode = null;
+
+        //Source Node
+        String nod = st.nextToken();
+
+        //New code to check for reflexive edges
+        String target = null;
+        if (st.hasMoreElements())
+          target = st.nextToken();
+
+        if (nod.equals(target))
+        {
+          reflexiveEdges++;
+          continue;
+        }
+
+        currentNode = (ParserNode)nodes.get(nod);
+
+        //Node is not known yet, add it to the list
+        if (currentNode == null)
+        {
+          currentNode = new ParserNode(nod);
+          nodes.put(nod,currentNode);
+        }
+
+        //For now the default weight is 1, it will be overriden if a weight
+        //is actually present in the input file...
+        Integer w = new Integer(1);
+
+        //Make sure a target node exists
+        if (target != null)
+        {
+          String dep = target;
+
+          //Now if there are more tokens the weight is the next expected
+          //token
+          if (st.hasMoreElements())
+            w = new Integer(st.nextToken());
+
+          //See if the target node is known, if not add it to the list
+          targetNode = (ParserNode)nodes.get(dep);
+          if (targetNode == null)
+          {
+            targetNode = new ParserNode(dep);
+            nodes.put(dep,targetNode);
+          }
+
+          //Add source to target, and target to source if they don't already
+          //exist as forward and backward dependencies
+          if (!currentNode.dependencies.containsKey(dep))
+          {
+            currentNode.dependencies.put (dep,dep);
+            currentNode.dWeights.put(dep,w);
+            //System.out.println("Adding weight " + w);
+          }
+          else
+          {
+            Integer wExisting = (Integer)currentNode.dWeights.get(dep);
+            Integer wtemp = new Integer(w.intValue() + wExisting.intValue());
+            currentNode.dWeights.put(dep,wtemp);
+          }
+
+          if (!targetNode.backEdges.containsKey(nod))
+          {
+            targetNode.backEdges.put(nod,nod);
+            targetNode.beWeights.put(nod,w);
+          }
+          else
+          {
+            Integer wExisting = (Integer)targetNode.beWeights.get(nod);
+            Integer wtemp = new Integer(w.intValue() + wExisting.intValue());
+            targetNode.beWeights.put(nod,wtemp);
+          }
+        }
+      }
+
+      //now deal with Bunch Format -- Generate bunch graph object
+      int sz = nodes.size();
+      Hashtable nameTable = new Hashtable();
+
+      //build temporary name to ID mapping table
+      Object [] oa = nodes.keySet().toArray();
+      for (int i = 0; i < oa.length; i++)
+      {
+        String n = (String)oa[i];
+        nameTable.put(n,new Integer(i));
+      }
+
+      //now build the graph
+      retGraph = new Graph(nodes.size(), numberOfClusters);
+      retGraph.clear();
+      Node[] nodeList = retGraph.getNodes();
+
+      //now setup the datastructure
+      Object [] nl = nodes.values().toArray();
+      for(int i = 0; i < nl.length; i++)
+      {
+        Node       n = new Node();
+        nodeList[i]  = n;
+        ParserNode p = (ParserNode)nl[i];
+        n.setName(p.name);
+        Integer nid = (Integer)nameTable.get(p.name);
+        n.nodeID = nid.intValue();
+        n.dependencies = ht2ArrayFromKey(nameTable,p.dependencies);
+        n.weights = ht2ArrayValFromKey(nameTable,p.dWeights);
+        n.backEdges = ht2ArrayFromKey(nameTable,p.backEdges);
+        n.beWeights = ht2ArrayValFromKey(nameTable,p.beWeights);
+      }
+    }
+    catch (java.io.IOException e) {
+      e.printStackTrace();
+    }
+
+    //dumpGraph(nodes);
+    return retGraph;
+  }
+
 /**
  * The method of the class where all work is done.
  */

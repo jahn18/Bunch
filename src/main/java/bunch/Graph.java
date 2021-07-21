@@ -74,6 +74,8 @@ transient ObjectiveFunctionCalculator calculator_d=null;
 
 public static ObjectiveFunctionCalculatorFactory objectiveFunctionCalculatorFactory_sd;
 
+public int numberOfClusters_d = 0;
+
 /**
  * Creates an empty Graph. Must call initGraph() later to be able to use this\
  * Graph instance.
@@ -105,6 +107,19 @@ Graph(int nodes)
   initGraph(nodes);
 }
 
+  /**
+   * Creates a graph with the specified number of nodes by calling initGraph()
+   *
+   * @param nodes the number of nodes this graph will contain
+   * @see #initGraph(int)
+   */
+  public
+  Graph(int nodes, int numberOfClusters)
+  {
+    this();
+    initGraphWithSetNumberOfClusters(nodes, numberOfClusters);
+  }
+
 /**
  * This method sets the objective function calculator factory, that will
  * be used later to create new calculators based on a given name. This
@@ -134,6 +149,24 @@ initGraph(int nodes)
   nodes_d = new Node[nodes];
   clusters_d = new int[nodes];
   locked_d = new boolean[nodes];
+}
+
+/**
+ * Initialized this  graph with the specified number of nodes
+ * (calls #clear() to ensure
+ * that the Graph is correctly initialized.)
+ *
+ * @param nodes the number of nodes of the graph
+ */
+// MARK: Added
+public
+void
+initGraphWithSetNumberOfClusters(int nodes, int numberOfClusters)
+{
+  nodes_d = new Node[nodes];
+  clusters_d = new int[nodes];
+  locked_d = new boolean[nodes];
+  numberOfClusters_d = numberOfClusters;
 }
 
 /**
@@ -168,9 +201,13 @@ clear()
 {
   for (int i=0; i<nodes_d.length; ++i) {
     nodes_d[i] = new Node();
-    clusters_d[i] = -1;
     locked_d[i] = false;
     setDoubleLocks(false);
+  }
+  // MARKED
+  for (int i=0; i<clusters_d.length; ++i)
+  {
+    clusters_d[i] = -1;
   }
 }
 
@@ -329,6 +366,7 @@ cloneGraph()
   Graph g = new Graph();
   g.nodes_d = this.nodes_d;
   g.clusters_d = new int[nodes_d.length];
+  //g.clusters_d = new int[clusters_d.length];
   g.originalNodes_d = this.originalNodes_d;
   g.locked_d = new boolean[nodes_d.length];
   g.intradependenciesValue_d = this.intradependenciesValue_d;
@@ -342,6 +380,7 @@ cloneGraph()
   g.random_d = this.random_d;
   g.isClusterTree_d = this.isClusterTree_d;
   g.checkRandomOK();
+  g.numberOfClusters_d = this.numberOfClusters_d;
   return g;
 }
 
@@ -364,7 +403,7 @@ getObjectiveFunctionValue()
  * "internal" use by the class and the OF Calculator Object used by the
  * class.
  *
- * @param the new objective function value for this graph
+ * @param objVal the new objective function value for this graph
  * @see #getObjectiveFunctionValue()
  */
 public
@@ -614,7 +653,7 @@ cloneSingleNodeClusters()
  * Defines the current graph clusters as "double locked" i.e., nodes cannot
  * leave OR enter the clusters already defined when the parameter is true.
  *
- * @param a boolean defining is the graph is "double locked" or not
+ * @param v a boolean defining is the graph is "double locked" or not
  * @see #hasDoubleLocks()
  */
 public
@@ -719,6 +758,34 @@ public int[] getRandomCluster()
     }
     return c;
 }
+
+  /**
+   * DOES NOT TAKE INTO ACCOUNT SPECIAL OR "LOCKED" CLUSTERS
+   * This method builds and returns a random cluster.  The cluster is encoded into
+   * an integer array, where each index indicates the node.  Thus n[0] would have
+   * the value of the cluster for node zero.
+   */
+  public int[] getRandomCluster(int numberOfClusters)
+  {
+    checkRandomOK();
+    int [] c = new int[nodes_d.length];
+
+    if (hasDoubleLocks()) {
+      for (int i=0; i<clusters_d.length; ++i) {
+        if (!locked_d[i]) {
+          c[i] = findFreeRandomCluster(getClusterNames());
+        }
+      }
+    }
+    else {
+      for (int i=0; i<clusters_d.length; ++i) {
+        if (!locked_d[i]) {
+          c[i] = (int)(random_d.nextFloat()*(numberOfClusters));
+        }
+      }
+    }
+    return c;
+  }
 
 
 /**

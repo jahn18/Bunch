@@ -135,6 +135,16 @@ parse()
     }
     return graph_d;
 }
+    /**
+     * This is the parse method that reads the input file, sets up the clusters
+     * and updates the graph accordingly.
+     */
+    public
+    Object
+    parse(int numberOfClusters)
+    {
+        return null;
+    }
 
 public boolean areAllNodesInCluster()
 {

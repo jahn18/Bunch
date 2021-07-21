@@ -58,7 +58,14 @@ void
 init()
 {
    currentPopulation_d = new Population(getGraph());
-   currentPopulation_d.genPopulation(getPopSize());
+   if(getGraph().numberOfClusters_d == 0)
+   {
+     currentPopulation_d.genPopulation(getPopSize());
+   }
+   else
+   {
+     currentPopulation_d.genPopulationWithSetNumberOfClusters(getPopSize());
+   }
 
    if (getBestCluster() == null) {
       setBestCluster(currentPopulation_d.getCluster(0).cloneCluster());
@@ -81,6 +88,39 @@ init()
   }
   */
 }
+
+  /**
+   * Generic initialization
+   */
+  public
+  void
+  init(int numberOfClusters)
+  {
+    currentPopulation_d = new Population(getGraph());
+    //currentPopulation_d.genPopulation(getPopSize());
+    currentPopulation_d.genPopulationWithSetNumberOfClusters(getPopSize());
+
+    if (getBestCluster() == null) {
+      setBestCluster(currentPopulation_d.getCluster(0).cloneCluster());
+    }
+
+  /*
+   * UNCOMMENT THE FOLLOWING BLOCK OF CODE IF YOU WANT TO PRELOAD ALL INITIAL
+   * POPULATIONS WITH TWO POPULATION MEMBERS.  THE FIRST MEMBER CONTAINING
+   * A SINGLE CLUSTER WITH ALL NODES.  THE SECOND MEMBER CONTAINING N CLUSTERS
+   * EACH CONTAINING A SINGLE NODE.
+   *
+   *
+  currentPopulation_d[0] = currentPopulation_d[0].cloneAllNodesCluster();
+  currentPopulation_d[0].calculateObjectiveFunctionValue();
+
+  if (getPopSize() >= 2)
+  {
+      currentPopulation_d[1] = currentPopulation_d[0].cloneSingleNodeClusters();
+      currentPopulation_d[1].calculateObjectiveFunctionValue();
+  }
+  */
+  }
 
 /**
  * Used to reinitialize the clustering method.  May be overriden in the
@@ -105,6 +145,7 @@ run()
   int generationsSinceLastChange = 0;
 
   //try the "all nodes in one cluster" partition
+  // MARK: need to reimplement getCluster to return partition of set # of clusters
   Cluster c2 = currentPopulation_d.getCluster(0);
 
   if (c2.getObjFnValue() > getBestCluster().getObjFnValue()) {

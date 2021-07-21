@@ -49,6 +49,7 @@ public class Population {
 
   }
 
+  // MARK: Change/augment this!
   public void genPopulation(int howMany)
   {
       pop.removeAllElements();
@@ -59,10 +60,28 @@ public class Population {
 
          //COMMENT THE BELOW LINE TO REMOVE THE EXPIREMENTAL FUNCTION
          int [] clusterV = g.genRandomClusterSize();
+
+         //int [] clusterV = g.genRandomClusterSize(numberOfClusters);
          Cluster c = new Cluster(g,clusterV);
          pop.addElement(c);
       }
   }
+
+    public void genPopulationWithSetNumberOfClusters(int howMany)
+    {
+        pop.removeAllElements();
+        for(int i = 0; i < howMany; i++)
+        {
+            //UNCOMMENT THE BELOW LINE FOR ORIGIONAL FUNCTION
+            int [] clusterV = g.getRandomCluster(g.numberOfClusters_d);
+
+            //COMMENT THE BELOW LINE TO REMOVE THE EXPIREMENTAL FUNCTION
+            //int [] clusterV = g.genRandomClusterSize();
+            Cluster c = new Cluster(g,clusterV);
+            pop.addElement(c);
+        }
+    }
+
 
   public int size()
   {

@@ -31,7 +31,8 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>bunch.Bunch</mainClass>
+<!--                            <mainClass>bunch.Bunch</mainClass>-->
+                                <mainClass>bunch.RunBunch</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

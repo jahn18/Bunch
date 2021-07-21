@@ -667,7 +667,6 @@ public void WriteOutputClusters(Vector cVect, int lvl) throws IOException
 public void write()
 {
   Graph gWriteGraph = graph_d;
-//System.out.println("Write Called");
   int technique = this.getOutputTechnique();
   String fileName = this.getCurrentName();
 

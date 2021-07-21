@@ -122,6 +122,10 @@ public class BunchProperties extends Properties{
   public static final String  USER_DIRECTED_CLUSTER_SIL  = "UserDirectedClusterSIL";
   public static final String  LOCK_USER_SET_CLUSTERS     = "LockUserSetClusters";
 
+  // ADDED
+  public static final String NUMBER_OF_CLUSTERS         = "NumberOfClusters";
+  public static final String FIX_NUMBER_OF_CLUSTERS   = "FixNumberOfClusters";
+
   public BunchProperties() {
       super();
       defaults = new Properties();
@@ -140,5 +144,8 @@ public class BunchProperties extends Properties{
       defaults.setProperty(OUTPUT_FORMAT,NULL_OUTPUT_FORMAT);
       defaults.setProperty(MQ_CALCULATOR_CLASS,"Incremental MQ Weighted");
       defaults.setProperty(MQ_CALC_DEFAULT_CLASS,"Incremental MQ Weighted");
+      // Added
+      defaults.setProperty(FIX_NUMBER_OF_CLUSTERS,"True");
+      defaults.setProperty(NUMBER_OF_CLUSTERS,"6");
   }
 }

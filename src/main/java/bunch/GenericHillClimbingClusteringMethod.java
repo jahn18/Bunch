@@ -121,7 +121,7 @@ nextGeneration()
           sequence[i]++;
           outLine = exp+","+i + "," + sequence[i] + "," + currentPopulation_d.getCluster(i).getObjFnValue()+","+ sCluster+","+sAligned;
           configuration_d.writer_d.write(outLine + "\r\n");
-        }
+      }
 
     boolean end=false;
     while (!end)
