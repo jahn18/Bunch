@@ -55,7 +55,7 @@ public class RunBunch {
     }
 
     public static void main(String[] args) throws Exception {
-        runBunch(5, "PartsUnlimitedMRPClassNameGraph.mdg", "");
+        runBunch(4, "/Users/johnahn/Research/Bunch/src/main/java/bunch/static_graph_new.mdg", "");
     }
 
     public static void runBunch(int numberOfClusters, String inputFile, String outputFile) throws Exception {
