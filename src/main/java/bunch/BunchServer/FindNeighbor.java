@@ -26,7 +26,7 @@ public class FindNeighbor {
 
 public
 Cluster
-clusterWorklist(Cluster c, Cluster maxC, int[] clustNames, boolean[] locks, int[] workList)
+clusterWorklist(Cluster c, Cluster maxC, int[] clustNames, int[] locks, int[] workList) // Type for locks was changed from boolean to int @johnahn
 {
     //c.force();                                //set the cluster vector dirty
     double maxOF = c.getObjFnValue();
@@ -47,8 +47,8 @@ clusterWorklist(Cluster c, Cluster maxC, int[] clustNames, boolean[] locks, int[
         int currClust = clusters[currNode];
         int j=0;
         for (; j<clustNames.length; ++j) {
-            if ((!locks[i]) && (clustNames[j] != currClust)) {
-                c.relocate(currNode, clustNames[j]); //
+//            if ((!locks[i]) && (clustNames[j] != currClust)) { * Commented out by @johnahn
+                c.relocate(currNode, clustNames[j], locks); //
                 //clusters[currNode] = clustNames[j];
                 //c.calcObjFn();
                 if (bunch.util.BunchUtilities.compareGreater(c.getObjFnValue(),maxOF)) {
@@ -57,9 +57,9 @@ clusterWorklist(Cluster c, Cluster maxC, int[] clustNames, boolean[] locks, int[
                     //System.arraycopy(clusters, 0, maxClust, 0, clusters.length);
                     maxOF = c.getObjFnValue();
                 }
-            }
+//            }
         }
-        c.relocate(currNode,currClust);
+        c.relocate(currNode,currClust, locks);
         //clusters[currNode] = currClust;
     }
 

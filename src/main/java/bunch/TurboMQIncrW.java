@@ -29,6 +29,8 @@
  */
 package bunch;
 
+import java.util.ArrayList;
+
 public class TurboMQIncrW
   implements ObjectiveFunctionCalculator
 {
@@ -82,8 +84,7 @@ public double calculate(Cluster c)
   //remove this
   //c.allocEdgeCounters();
   //-----------------------------
-
-  //return calcAll(c);
+//  return calcAll()
 
   if(c.isMoveValid() == false)
   {
@@ -94,7 +95,30 @@ public double calculate(Cluster c)
   else if (c.hasClusterNamesChanged())
     clusters_x = c.getClusterNames();
 
-  return calcIncr(c,c.getLmEncoding());
+  int[] lastMove = c.getLmEncoding();
+  int currentNode = lastMove[0];
+  int lmOrigC = lastMove[1];
+  int lmNewC = lastMove[2];
+  int[] cv = c.getClusterVector().clone();
+
+  double MQ = c.getLastMvObjFn();
+  ArrayList<Integer> group = new ArrayList<>();
+  if (c.locks[currentNode] != -1) {
+    for(int i = 0; i < c.locks.length; i++) {
+      if (c.locks[currentNode] == c.locks[i]) {
+        group.add(i);
+        cv[i] = lmOrigC;
+      }
+    }
+    for (int i : group) {
+      cv[i] = lmNewC;
+      MQ = calcIncr(c, new int[]{i, lmOrigC, lmNewC}, cv, MQ);
+    }
+  } else {
+    MQ = calcIncr(c,c.getLmEncoding(), cv, MQ);
+  }
+
+  return MQ;
 
 /*******
   muE = c.getMuEdgeVector();
@@ -169,7 +193,7 @@ private double calcAll(Cluster c)
   return MQ;
 }
 
-private double calcIncr(Cluster c, int[]lastMv)
+private double calcIncr(Cluster c, int[]lastMv, int[] cv, double MQ)
 {
   //int []lastMv = c.getLmEncoding();
   sm.incrCalcIncrCalcs();
@@ -190,7 +214,7 @@ private double calcIncr(Cluster c, int[]lastMv)
   int [] feW = n.weights;
   int [] be = n.backEdges;
   int [] beW = n.beWeights;
-  int [] cv = c.getClusterVector();
+//  int [] cv = c.getClusterVector();
   //int currentNode = n.nodeID;
     //String nodeName = n.name_d;
   int currentNodeCluster = cv[currentNode];
@@ -222,6 +246,7 @@ private double calcIncr(Cluster c, int[]lastMv)
         epE[lmOrigC]-=weight;
         epE[lmNewC]+=weight;
     }
+
   }
   //---- now the back edges
 
@@ -248,16 +273,17 @@ private double calcIncr(Cluster c, int[]lastMv)
     }
   }
 
- //now the updated MQ
+  //now the updated MQ
   double newCFiOrig  = calcCFi(lmOrigC);
   double newCFiNew   = calcCFi(lmNewC);
 
-  double MQ = c.getLastMvObjFn();
+//  double MQ = c.getLastMvObjFn();
 
-  MQ = MQ - CFiOrig - CFiNew + newCFiOrig + newCFiNew;
+//  MQ = MQ - CFiOrig - CFiNew + newCFiOrig + newCFiNew;
 
   //System.out.println("MQ is: " + MQ);
-  return MQ;
+//  return MQ;
+  return MQ - CFiOrig - CFiNew + newCFiOrig + newCFiNew;
 }
 
 private double calcCFi(int c)

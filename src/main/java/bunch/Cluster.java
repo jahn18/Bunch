@@ -25,6 +25,8 @@ package bunch;
 
 import java.util.Hashtable;
 import java.util.ArrayList;
+import java.util.List;
+
 import bunch.stats.*;
 
 /**
@@ -60,6 +62,8 @@ import bunch.stats.*;
   long   numMQEvaluations = 0;
   int    baseNumClusters = 0;
   Cluster baseCluster = null;
+
+  int[] locks = null; // Added here @johnahn
 
   //---------------------------------------------------
   //the following properties
@@ -120,19 +124,6 @@ import bunch.stats.*;
 
   public double getBaseObjFnValue()
   { return baseObjFnValue;  }
-
-    public int getNumberNodesInCluster(int cluster)
-    {
-        int numNodesInCluster = 0;
-        for(int i = 0; i < clusterVector.length; i++)
-        {
-            if(clusterVector[i] == cluster)
-            {
-                numNodesInCluster++;
-            }
-        }
-        return numNodesInCluster;
-    }
 
   public long getNumMQEvaluations()
   { return numMQEvaluations; }
@@ -310,7 +301,7 @@ import bunch.stats.*;
       isDirty = true;
 
       if (graph != null)
-         calcObjFn();
+         calcObjFn(this.locks);
   }
 
   /**
@@ -345,7 +336,7 @@ import bunch.stats.*;
   {
     isDirty = true;
     validMove = false;
-    calcObjFn();
+    calcObjFn(this.locks);
   }
 
   /**
@@ -353,9 +344,12 @@ import bunch.stats.*;
    * function factory.  If the current cluster is not dirty, the previously
    * cached value is returned.  If the cluster is dirty then the MQ
    * function is called.
+   *
+   * @Param locks   Added new parameter for consensus-based clustering @johnahn
    */
-  public double calcObjFn()
+  public double calcObjFn(int[] locks) // Added new parameter locks @johnahn
   {
+      this.locks = locks;
       stats.incrMQCalculations();
       numMQEvaluations++;
 
@@ -562,10 +556,10 @@ import bunch.stats.*;
    *
    * @returns An array of nodes indicating what clusters are locked.
    */
-  public boolean[] getLocks()
+  public int[] getLocks()
   {
       return graph.getLocks();
-  }
+  } // Changed to int here
 
   /**
    * This method is used to create a new cluster id.  When a new cluster is
@@ -613,11 +607,12 @@ import bunch.stats.*;
    *
    * @param nodeID        The ID of the node to be moved
    * @param newClusterID  The ID of the cluster to which the node is moved
+   * @param locks         Consensus-based groups @johnahn
    */
-  public boolean moveNodeToNewCluster(int nodeID, int newClusterID)
+  public boolean moveNodeToNewCluster(int nodeID, int newClusterID, int[] locks)
   {
     this.clusterNamesChanged = true;
-    return this.relocate(nodeID,newClusterID);
+    return this.relocate(nodeID,newClusterID, locks);
   }
 
   /**
@@ -655,14 +650,14 @@ import bunch.stats.*;
      int name;
      int numClusts = 0;
      boolean hasDoubleLocks = graph.hasDoubleLocks();
-     boolean [] locks = graph.getLocks();
+     int [] locks = graph.getLocks(); // Changed from boolean to int @johnahn
 
      /**
       * Dont count the locked clusters (the ones with special modules)
       */
      for (int i=0; i<clusterVector.length; ++i) {
        if (hasDoubleLocks)
-         if(locks[i]) continue;
+         if(locks[i] != -1) continue; // Added -1 here @johnahn
 
        name = clusterVector[i];
        Integer iNm = new Integer(name);
@@ -722,14 +717,15 @@ import bunch.stats.*;
    *
    * @param node      The ID of the node to be moved
    * @param cluster   The ID of the cluster for the moved node
+   * @param locks     The consensus groups of all nodes * Added by @johnahn
    *
    * @returns True if the relocation was OK, false if not.
    */
-  public boolean relocate(int node, int cluster)
+  public boolean relocate(int node, int cluster, int[] locks)
   {
     int currentCluster = clusterVector[node];
-    if(currentCluster != cluster && getNumberNodesInCluster(cluster) > 1)
-      return move(node,currentCluster,cluster);
+    if(currentCluster != cluster)
+      return move(node,currentCluster,cluster, locks);
 
     return true;
   }
@@ -740,10 +736,11 @@ import bunch.stats.*;
    * @param node          The ID of the node to be moved
    * @param origCluster   The ID of the cluster for the node prior to the move
    * @param newCluster    The ID of the cluster for the node after the move
+   * @param locks         The consensus groups of all nodes ** @ Added by @johnahn
    *
    * @returns True if the relocation was OK, false if not.
    */
-  public boolean move(int node, int origCluster, int newCluster)
+  public boolean move(int node, int origCluster, int newCluster, int[] locks)
   {
       /**
        * Panic check.  The node is not in its expected cluster.
@@ -760,12 +757,22 @@ import bunch.stats.*;
       lastMoveNewCluster = newCluster;
       lastMoveObjectiveFnValue = getObjFnValue();
 
-      //now make the move
-      clusterVector[node] = newCluster;
+      // (Added code for consensus-based clustering @johnahn)
+      // Moves all nodes in the same consensus group as _node_ to a new cluster
+      if (locks[node] != -1) {
+          for (int i = 0; i < locks.length; i++) {
+              if (locks[i] == locks[node]) {
+                  clusterVector[i] = newCluster;
+              }
+          }
+      } else {
+          //now make the move
+          clusterVector[node] = newCluster;
+      }
 
       isDirty = true;
       validMove = true;
-        calcObjFn();
+        calcObjFn(locks);
       validMove = false;
       isDirty = false;
 

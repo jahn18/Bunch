@@ -148,6 +148,4 @@ getReader()
 public abstract
 Object
 parse();
-
-public abstract Object parse(int numberOfClusters);
 }

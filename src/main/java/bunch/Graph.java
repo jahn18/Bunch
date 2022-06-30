@@ -33,6 +33,7 @@
  */
 package bunch;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -56,7 +57,8 @@ class Graph
 private Node[] nodes_d;
 private Node[] originalNodes_d;
 private int[] clusters_d;
-private boolean[] locked_d;
+//private boolean[] locked_d; *Commented out by @JohnAhn
+private int[] locked_d;
 private boolean hasLocks_d = false;
 private boolean isMaximum_d=false;
 private int graphLevel_d = 0;
@@ -73,8 +75,6 @@ private transient Random random_d;
 transient ObjectiveFunctionCalculator calculator_d=null;
 
 public static ObjectiveFunctionCalculatorFactory objectiveFunctionCalculatorFactory_sd;
-
-public int numberOfClusters_d = 0;
 
 /**
  * Creates an empty Graph. Must call initGraph() later to be able to use this\
@@ -107,19 +107,6 @@ Graph(int nodes)
   initGraph(nodes);
 }
 
-  /**
-   * Creates a graph with the specified number of nodes by calling initGraph()
-   *
-   * @param nodes the number of nodes this graph will contain
-   * @see #initGraph(int)
-   */
-  public
-  Graph(int nodes, int numberOfClusters)
-  {
-    this();
-    initGraphWithSetNumberOfClusters(nodes, numberOfClusters);
-  }
-
 /**
  * This method sets the objective function calculator factory, that will
  * be used later to create new calculators based on a given name. This
@@ -148,25 +135,8 @@ initGraph(int nodes)
 {
   nodes_d = new Node[nodes];
   clusters_d = new int[nodes];
-  locked_d = new boolean[nodes];
-}
-
-/**
- * Initialized this  graph with the specified number of nodes
- * (calls #clear() to ensure
- * that the Graph is correctly initialized.)
- *
- * @param nodes the number of nodes of the graph
- */
-// MARK: Added
-public
-void
-initGraphWithSetNumberOfClusters(int nodes, int numberOfClusters)
-{
-  nodes_d = new Node[nodes];
-  clusters_d = new int[nodes];
-  locked_d = new boolean[nodes];
-  numberOfClusters_d = numberOfClusters;
+//  locked_d = new boolean[nodes]; * Commented out by JohnAhn
+  locked_d = new int[nodes]; // Added by JohnAhn
 }
 
 /**
@@ -201,13 +171,10 @@ clear()
 {
   for (int i=0; i<nodes_d.length; ++i) {
     nodes_d[i] = new Node();
-    locked_d[i] = false;
-    setDoubleLocks(false);
-  }
-  // MARKED
-  for (int i=0; i<clusters_d.length; ++i)
-  {
     clusters_d[i] = -1;
+//    locked_d[i] = false; * Commented out @JohnAhn
+    locked_d[i] = -1;
+    setDoubleLocks(false);
   }
 }
 
@@ -221,10 +188,10 @@ public void resetNodeLocks()
   }
   setDoubleLocks(false);
 
-  boolean locks[] = this.getLocks();
+  int locks[] = this.getLocks(); // Changed this from boolean to int @johnahn
 
   for(int i = 0; i < locks.length; i++)
-    locks[i] = false;
+    locks[i] = -1; // Added -1 here instead of false @johnahn
 
   setLocks(locks);
 }
@@ -332,7 +299,7 @@ setClusters(int[] clusters)
  */
 public
 void
-setLocks(boolean[] locked)
+setLocks(int[] locked) // Changed from boolean to int @JohnAhn
 {
   locked_d = locked;
 }
@@ -344,7 +311,7 @@ setLocks(boolean[] locked)
  * @see #setLocks(boolean[])
  */
 public
-boolean[]
+int[] // Changed from boolean to int @JohnAhn
 getLocks()
 {
   return locked_d;
@@ -366,9 +333,8 @@ cloneGraph()
   Graph g = new Graph();
   g.nodes_d = this.nodes_d;
   g.clusters_d = new int[nodes_d.length];
-  //g.clusters_d = new int[clusters_d.length];
   g.originalNodes_d = this.originalNodes_d;
-  g.locked_d = new boolean[nodes_d.length];
+  g.locked_d = new int[nodes_d.length]; // Changed from boolean to int @johnahn
   g.intradependenciesValue_d = this.intradependenciesValue_d;
   g.interdependenciesValue_d = this.interdependenciesValue_d;
   g.objectiveFunctionValue_d = this.objectiveFunctionValue_d;
@@ -380,7 +346,6 @@ cloneGraph()
   g.random_d = this.random_d;
   g.isClusterTree_d = this.isClusterTree_d;
   g.checkRandomOK();
-  g.numberOfClusters_d = this.numberOfClusters_d;
   return g;
 }
 
@@ -403,7 +368,7 @@ getObjectiveFunctionValue()
  * "internal" use by the class and the OF Calculator Object used by the
  * class.
  *
- * @param objVal the new objective function value for this graph
+ * @param the new objective function value for this graph
  * @see #getObjectiveFunctionValue()
  */
 public
@@ -486,7 +451,7 @@ calculateObjectiveFunctionValue()
     }
     //calculator_d.calculate();
     Cluster c = new Cluster(this,this.getClusters());
-    c.calcObjFn();
+    c.calcObjFn(null);
     this.setObjectiveFunctionValue(c.getObjFnValue());
 }
 
@@ -540,14 +505,14 @@ cloneAllNodesCluster()
     if (g.hasDoubleLocks()) {
       int num = g.findFreeCluster(g.getClusterNames());
       for (int i=0; i<g.clusters_d.length; ++i) {
-        if (!g.locked_d[i]) {
-          g.clusters_d[i] = num;
-        }
+         if (g.locked_d[i] == -1) {  // Added -1 here @johnahn
+            g.clusters_d[i] = num;
+          }
       }
     }
     else {
       for (int i=0; i<g.clusters_d.length; ++i) {
-        if (!g.locked_d[i]) {
+        if (g.locked_d[i] == -1) { // Added -1 here @johnahn
           g.clusters_d[i] = 0;
         }
       }
@@ -633,7 +598,7 @@ cloneSingleNodeClusters()
 
     if (g.hasDoubleLocks()) {
       for (int i=0; i<g.clusters_d.length; ++i) {
-        if (!g.locked_d[i]) {
+        if (g.locked_d[i] == -1) { // Added this here @JohnAhn
           int num = g.findFreeCluster(g.getClusterNames());
           g.clusters_d[i] = num;
         }
@@ -641,7 +606,7 @@ cloneSingleNodeClusters()
     }
     else {
       for (int i=0; i<g.clusters_d.length; ++i) {
-        if (!g.locked_d[i]) {
+        if (g.locked_d[i] == -1) { // Added this here @JohnAhn
           g.clusters_d[i] = i;
         }
       }
@@ -653,7 +618,7 @@ cloneSingleNodeClusters()
  * Defines the current graph clusters as "double locked" i.e., nodes cannot
  * leave OR enter the clusters already defined when the parameter is true.
  *
- * @param v a boolean defining is the graph is "double locked" or not
+ * @param a boolean defining is the graph is "double locked" or not
  * @see #hasDoubleLocks()
  */
 public
@@ -698,7 +663,7 @@ shuffleClusters()
       return;
     }
     for (int i=0; i<clusters_d.length; ++i) {
-        if ((Math.random() > 0.6) && (!locked_d[i]))
+        if ((Math.random() > 0.6) && (locked_d[i] == -1)) // Added the -1 for locked @johnahn
             clusters_d[i] = clustNames[(int)(Math.random()*(clustNames.length-1))];
     }
 }
@@ -717,14 +682,14 @@ cloneWithRandomClusters()
     Graph g = cloneGraph();
     if (g.hasDoubleLocks()) {
       for (int i=0; i<g.clusters_d.length; ++i) {
-        if (!g.locked_d[i]) {
+        if (g.locked_d[i] == -1) { // Added -1 here @johnahn
           g.clusters_d[i] = g.findFreeRandomCluster(g.getClusterNames());
         }
       }
     }
     else {
       for (int i=0; i<g.clusters_d.length; ++i) {
-        if (!g.locked_d[i]) {
+        if (g.locked_d[i] == -1) { // Added -1 here @johnahn
           g.clusters_d[i] = (int)(random_d.nextFloat()*(g.clusters_d.length-1));
         }
       }
@@ -744,48 +709,27 @@ public int[] getRandomCluster()
 
     if (hasDoubleLocks()) {
       for (int i=0; i<clusters_d.length; ++i) {
-        if (!locked_d[i]) {
+        if (locked_d[i] == -1) { // Added -1 here @johnahn
           c[i] = findFreeRandomCluster(getClusterNames());
         }
       }
     }
     else {
+      ArrayList<Integer> found = new ArrayList<>();
       for (int i=0; i<clusters_d.length; ++i) {
-        if (!locked_d[i]) {
-          c[i] = (int)(random_d.nextFloat()*(clusters_d.length-1));
+//        if (locked_d[i] == -1) { // Added -1 here @johnahn
+//        c[i] = (int)(random_d.nextFloat()*(clusters_d.length-1));
+//        }
+        // added new code to randomize consensus groups
+        int rand = (int)(random_d.nextFloat()*(clusters_d.length-1));
+        for (int index : findGroups(i)) {
+          c[index] = rand;
+          found.add(index);
         }
       }
     }
     return c;
 }
-
-  /**
-   * DOES NOT TAKE INTO ACCOUNT SPECIAL OR "LOCKED" CLUSTERS
-   * This method builds and returns a random cluster.  The cluster is encoded into
-   * an integer array, where each index indicates the node.  Thus n[0] would have
-   * the value of the cluster for node zero.
-   */
-  public int[] getRandomCluster(int numberOfClusters)
-  {
-    checkRandomOK();
-    int [] c = new int[nodes_d.length];
-
-    if (hasDoubleLocks()) {
-      for (int i=0; i<clusters_d.length; ++i) {
-        if (!locked_d[i]) {
-          c[i] = findFreeRandomCluster(getClusterNames());
-        }
-      }
-    }
-    else {
-      for (int i=0; i<clusters_d.length; ++i) {
-        if (!locked_d[i]) {
-          c[i] = (int)(random_d.nextFloat()*(numberOfClusters));
-        }
-      }
-    }
-    return c;
-  }
 
 
 /**
@@ -800,7 +744,7 @@ public int[] genRandomClusterSize()
 
     int nodeCount = 0;
     for (int i=0; i<clusters_d.length; ++i) {
-      if (!locked_d[i]) {
+      if (locked_d[i] == -1) { // Added -1 here @johnahn
         c[i] = nodeCount;
         nodeCount++;
       }
@@ -820,7 +764,7 @@ public int[] genRandomClusterSize()
       int currCSize = 0;
       while(currCSize < clustSize)
       {
-        if(!locked_d[currNode])
+        if(locked_d[currNode] == -1) // Added -1 here @johnahn
         {
           currCSize++;
           c[currNode]=currC;
@@ -853,7 +797,7 @@ public int[] genRandomClusterSize()
       int stackIdx = 0;
       for(int i = currNode; i < clusters_d.length;i++)
       {
-        if(!locked_d[i])
+        if(locked_d[i] == -1) // Added -1 here @johnahn
           c[i] = clustStack[stackIdx++];
       }
     }
@@ -863,14 +807,43 @@ public int[] genRandomClusterSize()
       int pos1 = (int)(random_d.nextFloat()*(clusters_d.length-1));
       int pos2 = (int)(random_d.nextFloat()*(clusters_d.length-1));
 
-      if ((!locked_d[pos1])&&(!locked_d[pos2])) {
+      if ((locked_d[pos1] == -1)&&(locked_d[pos2] == -1)) { // Added -1 here @johnahn - UPDATE: modified so that consensus groups can be merged together upon initialization
+//      ArrayList<Integer> group1 = findGroups(pos1);
+//      ArrayList<Integer> group2 = findGroups(pos2);
         int tmp = c[pos1];
+//      for (int index : group1) {
+//        c[index] = c[pos2];
+//      }
+//
+//      for (int index : group2) {
+//        c[index] = tmp;
+//      }
         c[pos1] = c[pos2];
         c[pos2] = tmp;
       }
     }
     return c;
 }
+
+  /**
+   * Added by John Ahn. This returns all indices that correspond to a specific consensus group
+   * @param index
+   * @return
+   */
+  public ArrayList<Integer> findGroups(int index)
+  {
+    ArrayList<Integer> group = new ArrayList<>();
+    group.add(index);
+    if (locked_d[index] != -1) {
+      for (int i = 0; i < locked_d.length; i++) {
+        // Check if the element exists in the same group
+        if (i != index && locked_d[i] == locked_d[index]) {
+          group.add(i);
+        }
+      }
+    }
+    return group;
+  }
 
 
 /**
@@ -889,7 +862,7 @@ public int[] genRandomClusterSizeWithLimits(int min, int max)
 
     int nodeCount = 0;
     for (int i=0; i<clusters_d.length; ++i) {
-      if (!locked_d[i]) {
+      if (locked_d[i] == -1) { // Added -1 here @johnahn
         c[i] = nodeCount;
         nodeCount++;
       }
@@ -909,7 +882,7 @@ public int[] genRandomClusterSizeWithLimits(int min, int max)
       int currCSize = 0;
       while(currCSize < clustSize)
       {
-        if(!locked_d[currNode])
+        if(locked_d[currNode] == -1) // Added -1 here @johnahn
         {
           currCSize++;
           c[currNode]=currC;
@@ -942,7 +915,7 @@ public int[] genRandomClusterSizeWithLimits(int min, int max)
       int stackIdx = 0;
       for(int i = currNode; i < clusters_d.length;i++)
       {
-        if(!locked_d[i])
+        if(locked_d[i] == -1) // Added -1 here @johnahn
           c[i] = clustStack[stackIdx++];
       }
     }
@@ -952,7 +925,7 @@ public int[] genRandomClusterSizeWithLimits(int min, int max)
       int pos1 = (int)(random_d.nextFloat()*(clusters_d.length-1));
       int pos2 = (int)(random_d.nextFloat()*(clusters_d.length-1));
 
-      if ((!locked_d[pos1])&&(!locked_d[pos2])) {
+      if ((locked_d[pos1] == -1)&&(locked_d[pos2] == -1)) { // Added -1 here @johnahn
         int tmp = c[pos1];
         c[pos1] = c[pos2];
         c[pos2] = tmp;
@@ -1034,7 +1007,7 @@ getUnlockedClusterNames()
     int name;
     int numClusts = 0;
     for (int i=0; i<clusters_d.length; ++i) {
-      if (locked_d[i]) {
+      if (locked_d[i] != -1) { // Added -1 here @johnahn
         continue;
       }
       name = clusters_d[i];

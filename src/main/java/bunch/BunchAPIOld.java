@@ -280,13 +280,13 @@ run()
      * Setup the locked nodes, or the nodes that do not participate in the
      * clustering process.  These are libraries or omnipresent modules
      */
-    int[] clust = initialGraph_d.getClusters();
-    boolean[] locks = initialGraph_d.getLocks();
-    for (int i=0; i<clust.length; ++i) {
-      if (clust[i] != -1) {
-        locks[i] = true;
-      }
-    }
+//    int[] clust = initialGraph_d.getClusters();
+//    boolean[] locks = initialGraph_d.getLocks();
+//    for (int i=0; i<clust.length; ++i) {
+//      if (clust[i] != -1) {
+//        locks[i] = true;
+//      }
+//    }
 
     /**
      * Iniitalize the clustering method, set the output file and perform the
@@ -327,13 +327,13 @@ runBatch(int howMany) throws Exception
           configureOptions();
 
     	  int[] clust = initialGraph_d.getClusters();
-    	  boolean[] locks = initialGraph_d.getLocks();
-    	  for (int i=0; i<clust.length; ++i)
-          {
-            if (clust[i] != -1) {
-              locks[i] = true;
-            }
-    	  }
+//    	  boolean[] locks = initialGraph_d.getLocks();
+//    	  for (int i=0; i<clust.length; ++i)
+//          {
+//            if (clust[i] != -1) {
+//              locks[i] = true;
+//            }
+//    	  } // COMMENTED OUT @johnahn
 
     	  clusteringMethod_d.initialize();
     	  clusteringMethod_d.setGraph(initialGraph_d.cloneGraph());

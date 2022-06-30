@@ -109,7 +109,7 @@ public Cluster maximizeCluster(Cluster c)
 
     int[] maxClust = maxC.getClusterVector();
 
-    boolean[] locks = c.getLocks();
+    int[] locks = c.getLocks(); // Chnaged from boolean to int @johnahn
 
     //***********
     //take this out later
@@ -125,7 +125,7 @@ public Cluster maximizeCluster(Cluster c)
     while((workVector = getMoreWork(workVector)) != null)
     {
       totalWork += workVector.length;
-      intermC = nServer.clusterWorklist(c,intermC,clustNames,locks,workVector);
+//      intermC = nServer.clusterWorklist(c,intermC,clustNames,locks,workVector); * @johnahn commented this out
       if (progressWindow != null)
         progressWindow.updateWorkProcessed(workVector.length,intermC.getObjFnValue(),currUOWSz,adaptiveEnabled);
       if (intermC.getObjFnValue() > maxOF) {

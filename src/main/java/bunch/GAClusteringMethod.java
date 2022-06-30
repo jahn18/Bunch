@@ -134,7 +134,7 @@ public Cluster getBestCluster()
 {
   Graph bestG = getBestGraph();
   Cluster c = new Cluster(bestG,bestG.getClusters());
-  c.calcObjFn();
+  c.calcObjFn(null);
   return c;
 }
 

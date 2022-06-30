@@ -66,6 +66,7 @@ public class BunchEngine {
   javax.swing.Timer timeoutTimer = null;
   Thread clusteringProcessThread = null;
   int reflexiveEdgeCount = 0;
+  Graph lockedNodes;
 
   String precision;
   String recall;
@@ -84,7 +85,7 @@ public class BunchEngine {
       delims += def_delims;
 
     if (((String)bunchArgs.get(BunchProperties.MDG_PARSER_USE_SPACES)).equalsIgnoreCase("TRUE"))
-      delims = " " + delims;  //includes the space character
+      delims = "," + delims;  //includes the comma character
     if (((String)bunchArgs.get(BunchProperties.MDG_PARSER_USE_TABS)).equalsIgnoreCase("TRUE"))
       delims = "\t" + delims; //includes the tab character
 
@@ -567,16 +568,7 @@ arrangeLibrariesClientsAndSuppliers(Graph g,
         Parser p = preferences_d.getParserFactory().getParser("dependency");
         p.setInput((String)bunchArgs.get(BunchProperties.MDG_INPUT_FILE_NAME));
         p.setDelims(getFileDelims());
-        String setClusterNumber = (String) bunchArgs.get(BunchProperties.FIX_NUMBER_OF_CLUSTERS);
-        if(setClusterNumber.equalsIgnoreCase("True"))
-        {
-          String numClusters = (String) bunchArgs.get(BunchProperties.NUMBER_OF_CLUSTERS);
-          initialGraph_d = (Graph)p.parse(Integer.parseInt(numClusters));
-        }
-        else
-        {
-          initialGraph_d = (Graph)p.parse();
-        }
+        initialGraph_d = (Graph)p.parse();
         reflexiveEdgeCount = ((DependencyFileParser)p).getReflexiveEdges();
       }
 
@@ -606,16 +598,22 @@ arrangeLibrariesClientsAndSuppliers(Graph g,
           if(lock==true)
             initialGraph_d.setDoubleLocks(true);
 
-          //=================================
-          //Now lock the clusters
-          //=================================
-          int[] clust = initialGraph_d.getClusters();
-          boolean[] locks = initialGraph_d.getLocks();
-          for (int i=0; i<clust.length; ++i) {
-            if (clust[i] != -1) {
-              locks[i] = true;
-            }
+          // Newly added code by @JohnAhn for consensus-based clustering
+          int[] locks = initialGraph_d.getLocks();
+          for (int i = 0; i < initialGraph_d.getClusters().length; i++) {
+            locks[i] = initialGraph_d.getClusters()[i];
           }
+
+          //=================================
+          //Now lock the clusters * Commented out by @JohnAhn for consensus-based clustering
+          //=================================
+//          int[] clust = initialGraph_d.getClusters();
+//          boolean[] locks = initialGraph_d.getLocks();
+//          for (int i=0; i<clust.length; ++i) {
+//            if (clust[i] != -1) {
+//              locks[i] = true;
+//            }
+//          }
         }
 
       //See if there are special modules
@@ -887,7 +885,6 @@ arrangeLibrariesClientsAndSuppliers(Graph g,
     //    notifyClass = (BunchAsyncNotify)bunchArgs.get(BunchProperties.RUN_ASYNC_NOTIFY_CLASS);
     //if(notifyClass == null)
     //{
-    //unused
       ExecuteClusteringEngine ce = new ExecuteClusteringEngine();//clusteringMethod_d,bunchArgs);
     //}
     //else
@@ -929,8 +926,6 @@ arrangeLibrariesClientsAndSuppliers(Graph g,
 
         ce = new ExecuteClusteringEngine();//clusteringMethod_d,bunchArgs);
 
-
-        //clusteringMethod_d.run();
         bestC = clusteringMethod_d.getBestCluster();
         clusterList.add(clusteringMethod_d.getBestCluster().cloneCluster());
         //System.out.println("MQ-Lvl"+ bestC.getGraph().getGraphLevel()+" is: " + bestC.getObjFnValue());
@@ -945,11 +940,11 @@ arrangeLibrariesClientsAndSuppliers(Graph g,
         cNames = g.getClusterNames();  //c.getClusterNames();
       }
     }
-    if(graphOutput_d != null)
-    {
-      graphOutput_d.setGraph(clusteringMethod_d.getBestGraph());
-      graphOutput_d.write();
-    }
+//    if(graphOutput_d != null)
+//    {
+//      graphOutput_d.setGraph(clusteringMethod_d.getBestGraph());
+//      graphOutput_d.write();
+//    }
 
     //if(notifyClass != null)
     //  notifyClass.notifyDone();
@@ -1128,7 +1123,7 @@ arrangeLibrariesClientsAndSuppliers(Graph g,
       else
         rc = runClusteringAsync(notifyClass);
 
-      //prepareResultsHT();
+//      prepareResultsHT();
       return rc;
     }
     if(runMode.equalsIgnoreCase(BunchProperties.RUN_MODE_PR_CALC))

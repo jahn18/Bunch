@@ -43,7 +43,7 @@ System.out.print("IN:  " + c.getObjFnValue() + "  ");
     int[] clusters = c.getClusterVector();
     
     int[] maxClust = new int[clusters.length];
-    boolean[] locks = c.getLocks();
+    int[] locks = c.getLocks(); //Changed here @johnahn
     
                    //SRC          DEST
     System.arraycopy(clusters, 0, maxClust, 0, clusters.length);
@@ -52,9 +52,9 @@ System.out.print("IN:  " + c.getObjFnValue() + "  ");
         int currClust = clusters[i];
         int j=0;
         for (; j<clustNames.length; ++j) {
-            if ((!locks[i]) && (clustNames[j] != currClust)) {
+            if ((locks[i] == -1) && (clustNames[j] != currClust)) { // Changed anything with locks @johnahn
                 clusters[i] = clustNames[j];
-                c.calcObjFn();
+                c.calcObjFn(null);
                 if (c.getObjFnValue() > maxOF) {
                     System.arraycopy(clusters, 0, maxClust, 0, clusters.length);
                     maxOF = c.getObjFnValue();
@@ -71,7 +71,7 @@ System.out.print("IN:  " + c.getObjFnValue() + "  ");
       //we didn't find a better max partition then it's a maximum
       c.setConverged(true);
     }
-    c.calcObjFn();
+    c.calcObjFn(null);
 
 System.out.println("OUT:  " + c.getObjFnValue() + "  ");
     

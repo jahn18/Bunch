@@ -48,7 +48,7 @@ System.out.print("IN:  " + c.getObjFnValue() + "  ");
 
     int[] maxClust = maxC.getClusterVector();
 
-    boolean[] locks = c.getLocks();
+    int[] locks = c.getLocks(); // Changed from boolean to int @johnahn
 
     //***********
     //take this out later
@@ -63,7 +63,7 @@ System.out.print("IN:  " + c.getObjFnValue() + "  ");
 
     while((workVector = getMoreWork()) != null)
     {
-      intermC = nServer.clusterWorklist(c,intermC,clustNames,locks,workVector);
+//      intermC = nServer.clusterWorklist(c,intermC,clustNames,locks,workVector);
       if (bunch.util.BunchUtilities.compareGreater(intermC.getObjFnValue(),maxOF)) {
       //if (intermC.getObjFnValue() > maxOF) {
          maxC.copyFromCluster(intermC);//System.arraycopy(clusters, 0, intermClust, 0, clusters.length);

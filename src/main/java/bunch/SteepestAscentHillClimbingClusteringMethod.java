@@ -50,7 +50,7 @@ getLocalMaxGraph(Cluster c)
     int[] clustNames = c.getClusterNames();
     int[] clusters = c.getClusterVector();
     int[] maxClust = maxC.getClusterVector();
-    boolean[] locks = c.getLocks();
+    int[] locks = c.getLocks(); // Changed here @johnahn
 
     //System.out.println("Cluster names before = " + clustNames.length);
 
@@ -76,9 +76,9 @@ getLocalMaxGraph(Cluster c)
         //c.pushNode(i);
         int j=0;
         for (; j<clustNames.length; ++j) {
-            if ((!locks[i]) && (clustNames[j] != currClust)) {
+            if ((locks[i] == -1) && (clustNames[j] != currClust)) {
                 double t = c.getObjFnValue();
-                c.relocate(i,clustNames[j]);
+                c.relocate(i,clustNames[j], locks);
                 //System.out.println("("+i+","+clustNames[j]+") before="+t+" after="+c.getObjFnValue()+" maxof="+maxOF);
                 //**c.move(i,clusters[i],clustNames[j]); //clusters[i] = clustNames[j];
                 //c.calcObjFn(); //.calculateObjectiveFunctionValue();
@@ -95,7 +95,7 @@ getLocalMaxGraph(Cluster c)
                 //}
             }
         }
-        c.relocate(i,currClust);
+        c.relocate(i,currClust, locks);
         //c.popNode();
         //**c.move(i,clusters[i],currClust); //rollbackLastMove();   //clusters[i] = currClust;
     }
@@ -107,25 +107,25 @@ getLocalMaxGraph(Cluster c)
 
         for (int i=0; i<clusters.length; ++i) {
           int currClust = clusters[i];
-          c.relocate(i,newClusterID);
+          c.relocate(i,newClusterID, locks);
           int []edges = nodes[i].getDependencies();
 
           int j=0;
           for (; j<edges.length; ++j) {
             int otherNode = edges[j];
-            if ((!locks[i]) && (!locks[otherNode])) {
+            if ((locks[i] == -1) && (locks[otherNode] == -1)) {
                 int otherNodeCluster = clusters[otherNode];
-                c.relocate(otherNode,newClusterID);
+                c.relocate(otherNode,newClusterID, locks);
 
                 if (bunch.util.BunchUtilities.compareGreater(c.getObjFnValue(),maxOF)) {
                     maxC.copyFromCluster(c);
                     maxOF = c.getObjFnValue();
                 }
 
-                c.relocate(otherNode,otherNodeCluster);
+                c.relocate(otherNode,otherNodeCluster, locks);
             }
           }
-          c.relocate(i,currClust);
+          c.relocate(i,currClust, locks);
         }
       c.removeNewCluster(newClusterID);
     }

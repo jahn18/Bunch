@@ -100,7 +100,8 @@ getLocalMaxGraph(Cluster c)
     int[] clustNames = c.getClusterNames();
     int[] clusters = c.getClusterVector();
     int[] maxClust = maxC.getClusterVector();
-    boolean[] locks = c.getLocks();
+//    boolean[] locks = c.getLocks(); // * Commented out by @JohnAhn for consensus-based clustering
+    int[] locks = c.getLocks();
 
     long maxPartitionsToExamine = (clusters.length /*c.size()*/) *(clustNames.length);
     int currClustersExamined = 0;
@@ -172,15 +173,12 @@ getLocalMaxGraph(Cluster c)
         int currNode  = rndClustOrdering[i];
         int currClust = clusters[currNode];//c.getCluster(currNode);
         int tmpClust  = currClust;
-        if(c.getNumberNodesInCluster(currClust) <= 1)
-        {
-            continue;
-        }
 //System.out.println();
 //System.out.println("Current node = " + currNode + " current Cluster = " + currClust);
         int j=0;
         for (; j<clustNames.length; ++j) {
-            if ((!locks[currNode]) && (clustNames[rndClustNameOrdering[j]] != currClust)) {
+//            if ((locks[currNode] == -1) && (clustNames[rndClustNameOrdering[j]] != currClust)) {
+            if ((clustNames[rndClustNameOrdering[j]] != currClust)) { // Removed the locks from the predicate @johnahn
 
                 currClustersExamined++;
                 if((foundbetter)&&(currClustersExamined>partitionsToExamine))
@@ -197,7 +195,7 @@ getLocalMaxGraph(Cluster c)
                 }
 
 //System.out.println("Moving node : " + currNode+" to cluster " + rndClustNameOrdering[j]);
-                c.relocate(currNode,clustNames[rndClustNameOrdering[j]]);
+                c.relocate(currNode,clustNames[rndClustNameOrdering[j]], locks);
 
                 if(saAlg != null)
                 {
@@ -250,55 +248,49 @@ getLocalMaxGraph(Cluster c)
             //c.relocate(currNode,currClust);
             //}
        }
-       c.relocate(currNode,currClust);
+       c.relocate(currNode,currClust, locks);
 //firstMove = false;
 //System.out.println("Restoring node " + currNode + " to cluster " + currClust);
     }
     }catch(Exception ex)
     {System.out.println(ex.toString()); }
 
-    boolean hasFixedNumberOfClusters = (c.graph.numberOfClusters_d > 0);
+//******************** THIS IS NEW EXPIREMENTAL CODE
+    if (!bunch.util.BunchUtilities.compareGreater(maxOF,originalMax)) {
+      Node [] nodes = c.getGraph().getNodes();
+      int newClusterID = c.allocateNewCluster();
 
-    if(!hasFixedNumberOfClusters)
-    {
-    //******************** THIS IS NEW EXPERIMENTAL CODE
-        if (!bunch.util.BunchUtilities.compareGreater(maxOF,originalMax)) {
-            Node [] nodes = c.getGraph().getNodes();
-            int newClusterID = c.allocateNewCluster();
+        for (int i=0; i<clusters.length; ++i) {
+          int currNode  = rndClustOrdering[i];
+          int currClust = clusters[currNode];
 
-            for (int i=0; i<clusters.length; ++i) {
-                int currNode  = rndClustOrdering[i];
-                int currClust = clusters[currNode];
+          c.relocate(currNode,newClusterID, locks);
+          int []edges = nodes[currNode].getDependencies();
 
-                c.relocate(currNode,newClusterID);
-                int []edges = nodes[currNode].getDependencies();
+          int j=0;
+          for (; j<edges.length; ++j) {
+            int otherNode = edges[j];
+//            if ((locks[currNode] == -1) && (locks[otherNode] == -1)) { * commented out @johnahn
+                int otherNodeCluster = clusters[otherNode];
+                c.relocate(otherNode,newClusterID, locks);
 
-                int j=0;
-                for (; j<edges.length; ++j) {
-                    int otherNode = edges[j];
-                    if ((!locks[currNode]) && (!locks[otherNode])) {
-                        int otherNodeCluster = clusters[otherNode];
-                        c.relocate(otherNode,newClusterID);
-
-                        if (bunch.util.BunchUtilities.compareGreater(c.getObjFnValue(),maxOF)) {
-                            maxC.copyFromCluster(c);
-                            maxOF = c.getObjFnValue();
-                            c.copyFromCluster(maxC);
-                            c.incrDepth();
-                            c.setConverged(false);
+                if (bunch.util.BunchUtilities.compareGreater(c.getObjFnValue(),maxOF)) {
+                    maxC.copyFromCluster(c);
+                    maxOF = c.getObjFnValue();
+                    c.copyFromCluster(maxC);
+                    c.incrDepth();
+                    c.setConverged(false);
 //System.out.println("EARLY3");
-                            return c;
-                        }
-                        c.relocate(otherNode,otherNodeCluster);
-                    }
+                    return c;
                 }
-                c.relocate(currNode,currClust);
-            }
-            c.removeNewCluster(newClusterID);
+                c.relocate(otherNode,otherNodeCluster, locks);
+//            }
+          }
+          c.relocate(currNode,currClust, locks);
         }
-    //*********************** END OF EXPERIMENTAL CODE
-
+      c.removeNewCluster(newClusterID);
     }
+//*********************** END OF EXPIREMENTAL CODE
 
 
 
@@ -320,6 +312,7 @@ getLocalMaxGraph(Cluster c)
     return c;
 }
 
+
 protected
 Graph
 getLocalMaxGraph(Graph g)
@@ -335,7 +328,7 @@ getLocalMaxGraph(Graph g)
     }
     int[] clusters = g.getClusters();
     int[] ranClust = new int[clusters.length];
-    boolean[] locks = g.getLocks();
+    int[] locks = g.getLocks();
 
     for (int i=0; i<ranClust.length; ++i) {
       ranClust[i] = i;
@@ -387,14 +380,14 @@ getLocalMaxGraph(Graph g)
 
       j=0;
       for (; j<clustNames.length; ++j) {
-        if (!locks[i]) {
+//        if (locks[i] == -1) {
           clusters[i] = clustNames[j];
           g.calculateObjectiveFunctionValue();
           if (g.getObjectiveFunctionValue() > maxOF) {
             foundbetter = true;
             break;
           }
-        }
+//        }
       }
       if (foundbetter) {
         break;

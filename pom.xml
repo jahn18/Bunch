@@ -9,11 +9,9 @@
   <name>Bunch4</name>
   <url>http://maven.apache.org</url>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>16</maven.compiler.source>
-        <maven.compiler.target>16</maven.compiler.target>
-    </properties>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -22,21 +20,6 @@
       <version>3.8.1</version>
       <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>edu.drexel</groupId>
-          <artifactId>Bunch</artifactId>
-          <version>3.5</version>
-      </dependency>
-      <dependency>
-          <groupId>org.jboss.spec.javax.rmi</groupId>
-          <artifactId>jboss-rmi-api_1.0_spec</artifactId>
-          <version>1.0.6.Final</version>
-      </dependency>
-      <dependency>
-          <groupId>org.glassfish.corba</groupId>
-          <artifactId>glassfish-corba-omgapi</artifactId>
-          <version>4.0.2-b009</version>
-      </dependency>
   </dependencies>
   <version>3.5</version>
   <build>
@@ -48,10 +31,17 @@
                 <configuration>
                     <archive>
                         <manifest>
-<!--                            <mainClass>bunch.Bunch</mainClass>-->
-                                <mainClass>bunch.RunBunch</mainClass>
+                            <mainClass>bunch.Bunch</mainClass>
                         </manifest>
                     </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
                 </configuration>
             </plugin>
         </plugins>

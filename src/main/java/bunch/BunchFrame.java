@@ -1234,13 +1234,13 @@ runActionButton_d_actionPerformed(ActionEvent e)
     initialGraph_d.setDoubleLocks(true);
   }
 
-  int[] clust = initialGraph_d.getClusters();
-  boolean[] locks = initialGraph_d.getLocks();
-  for (int i=0; i<clust.length; ++i) {
-    if (clust[i] != -1) {
-      locks[i] = true;
-    }
-  }
+//  int[] clust = initialGraph_d.getClusters(); COMMENTED OUT @johnahn
+//  boolean[] locks = initialGraph_d.getLocks();
+//  for (int i=0; i<clust.length; ++i) {
+//    if (clust[i] != -1) {
+//      locks[i] = true;
+//    }
+//  }
 
   if (librariesListModel_d.size() > 0 || suppliersListModel_d.size() > 0
       || clientsListModel_d.size() > 0 || centralListModel_d.size() > 0) {
@@ -2808,7 +2808,7 @@ class BunchFrame_runActionButton_d_actionAdapter
  * is used for user directed clustering.
  */
 class BunchFrame_inputClusterFileSelectButton_d_actionAdapter
-  implements java.awt.event.ActionListener{
+  implements java.awt.event.ActionListener {
 
   BunchFrame adaptee;
 

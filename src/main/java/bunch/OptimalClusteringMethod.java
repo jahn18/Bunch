@@ -79,7 +79,7 @@ run()
   Cluster bestCluster = new Cluster();
   bestCluster.copyFromCluster(currC);
 
-  double bestOFValue = bestCluster.calcObjFn();
+  double bestOFValue = bestCluster.calcObjFn(null);
   int j = 2;
 
   while (morePartitions) {
@@ -89,7 +89,7 @@ run()
     //System.out.print("[");
     for(int i = 0; i < clusters.length;i++)
       if(clusters[i]!=lastCluster[i])
-        currC.relocate(i,clusters[i]);
+        currC.relocate(i,clusters[i], new int[0]); // Added a random instance of a int array @johnahn
       //System.out.print(clusters[i]+" ");
     //System.out.println("]");
 
@@ -98,7 +98,7 @@ run()
     //System.arraycopy(nClusters_d, 1, clusters, 0, clusters.length);
     //graph.calculateObjectiveFunctionValue();
 
-    double ofValue = currC.calcObjFn(); //.getObjectiveFunctionValue();
+    double ofValue = currC.calcObjFn(null); //.getObjectiveFunctionValue();
     if (bunch.util.BunchUtilities.compareGreater(ofValue,bestOFValue)) {
     //if (ofValue > bestOFValue) {
       currC.incrDepth();
